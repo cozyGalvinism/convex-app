@@ -4,7 +4,6 @@
   import type { Instance, ScanResult } from "../lib/api";
   import { watchGamepad } from "$lib/gamepad";
   import GroupStrip from "$lib/GroupStrip.svelte";
-  import { showDeckKeyboardFor } from "$lib/osk";
 
   let data = $state({ instances: [], groups: {} } as ScanResult);
   let searchEl: HTMLInputElement;
@@ -163,9 +162,6 @@
         oninput={() => {
           recompute();
           focus = 0;
-        }}
-        onfocus={() => {
-          showDeckKeyboardFor(searchEl);
         }}
       />
       <button

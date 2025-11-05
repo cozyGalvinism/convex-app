@@ -5,34 +5,11 @@ use std::{
 
 use base64::Engine;
 use serde::Serialize;
-use tauri::State;
 use tauri_plugin_shell::ShellExt;
 
 use crate::instance_cfg::parse_general;
 
 pub mod instance_cfg;
-
-struct SteamClient(Option<steamworks::Client>);
-
-impl SteamClient {
-    pub fn init() -> Self {
-        Self(steamworks::Client::init().ok())
-    }
-
-    pub fn show_osk(&self, x: i32, y: i32, width: i32, height: i32) {
-        if let Some(client) = &self.0 {
-            let utils = client.utils();
-            utils.show_floating_gamepad_text_input(
-                steamworks::FloatingGamepadTextInputMode::SingleLine,
-                x,
-                y,
-                width,
-                height,
-                || {},
-            );
-        }
-    }
-}
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -76,18 +53,6 @@ fn show_instance(
     root_override: Option<String>,
 ) -> Result<(), String> {
     show_in_prism(&app_handle, &instance_id, root_override.as_deref()).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-fn show_steam_deck_keyboard(
-    steam: State<'_, SteamClient>,
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
-) -> Result<(), String> {
-    steam.show_osk(x as i32, y as i32, width as i32, height as i32);
-    Ok(())
 }
 
 fn validate_prism_dir(root: &Path) -> bool {
@@ -284,13 +249,11 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
-        .manage(SteamClient::init())
         .invoke_handler(tauri::generate_handler![
             greet,
             scan_prism,
             launch_instance,
-            show_instance,
-            show_steam_deck_keyboard
+            show_instance
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
