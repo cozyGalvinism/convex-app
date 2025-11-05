@@ -27,6 +27,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
+      - name: install tauri-cli experimental app image
+        run: cargo install tauri-cli --git https://github.com/tauri-apps/tauri.git --branch feat/truly-portable-appimage
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -53,7 +56,7 @@ jobs:
           NO_STRIP: true
           APPIMAGE_EXTRACT_AND_RUN: 1
         with:
-          tauriScript: "bun tauri"
+          tauriScript: "cargo tauri"
           tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: "Convex v__VERSION__"
           releaseBody: "See the assets to download this version and install."
