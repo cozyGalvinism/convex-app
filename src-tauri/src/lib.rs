@@ -90,9 +90,33 @@ fn show_steam_deck_keyboard(
     Ok(())
 }
 
-fn default_root() -> PathBuf {
+fn validate_prism_dir(root: &Path) -> bool {
+    root.join("prismlauncher.cfg").exists()
+}
+
+fn is_flatpak_install(root: &Path) -> bool {
+    root.to_string_lossy()
+        .contains(".var/app/org.prismlauncher.PrismLauncher")
+}
+
+fn find_prism_root() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-    PathBuf::from(home).join(".local/share/PrismLauncher")
+
+    // Try standard location first
+    let standard_path = PathBuf::from(&home).join(".local/share/PrismLauncher");
+    if validate_prism_dir(&standard_path) {
+        return standard_path;
+    }
+
+    // Try Flatpak location
+    let flatpak_path =
+        PathBuf::from(&home).join(".var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher");
+    if validate_prism_dir(&flatpak_path) {
+        return flatpak_path;
+    }
+
+    // Fallback to standard path even if not validated (for new installs)
+    standard_path
 }
 
 fn instances_dir(root: &Path) -> PathBuf {
@@ -106,7 +130,7 @@ fn icons_dir(root: &Path) -> PathBuf {
 fn scan(root_override: Option<String>) -> anyhow::Result<ScanResult> {
     let root = root_override
         .map(PathBuf::from)
-        .unwrap_or_else(default_root);
+        .unwrap_or_else(find_prism_root);
 
     let inst_dir = instances_dir(&root);
     let mut instances = vec![];
@@ -200,9 +224,22 @@ fn launch(
     root_override: Option<&str>,
 ) -> anyhow::Result<()> {
     let shell = app_handle.shell();
-    let mut cmd = shell.command("prismlauncher");
-    if let Some(root) = root_override {
-        cmd = cmd.arg("--dir").arg(root);
+    let root = root_override
+        .map(PathBuf::from)
+        .unwrap_or_else(find_prism_root);
+
+    let mut cmd = if is_flatpak_install(&root) {
+        shell.command("flatpak")
+    } else {
+        shell.command("prismlauncher")
+    };
+
+    if is_flatpak_install(&root) {
+        cmd = cmd.arg("run").arg("org.prismlauncher.PrismLauncher");
+    }
+
+    if let Some(root_path) = root_override {
+        cmd = cmd.arg("--dir").arg(root_path);
     }
     cmd = cmd.arg("--launch").arg(instance_id);
     cmd.spawn()?;
@@ -216,9 +253,22 @@ fn show_in_prism(
     root_override: Option<&str>,
 ) -> anyhow::Result<()> {
     let shell = app_handle.shell();
-    let mut cmd = shell.command("prismlauncher");
-    if let Some(root) = root_override {
-        cmd = cmd.arg("--dir").arg(root);
+    let root = root_override
+        .map(PathBuf::from)
+        .unwrap_or_else(find_prism_root);
+
+    let mut cmd = if is_flatpak_install(&root) {
+        shell.command("flatpak")
+    } else {
+        shell.command("prismlauncher")
+    };
+
+    if is_flatpak_install(&root) {
+        cmd = cmd.arg("run").arg("org.prismlauncher.PrismLauncher");
+    }
+
+    if let Some(root_path) = root_override {
+        cmd = cmd.arg("--dir").arg(root_path);
     }
     cmd = cmd.arg("--show").arg(instance_id);
     cmd.spawn()?;
