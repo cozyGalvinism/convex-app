@@ -81,12 +81,13 @@ fn show_instance(
 #[tauri::command]
 fn show_steam_deck_keyboard(
     steam: State<'_, SteamClient>,
-    x: i32,
-    y: i32,
-    width: i32,
-    height: i32,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
 ) -> Result<(), String> {
-    steam.show_osk(x, y, width, height);
+    println!("trying to show osk at ({}, {})", x, y);
+    steam.show_osk(x as i32, y as i32, width as i32, height as i32);
     Ok(())
 }
 
