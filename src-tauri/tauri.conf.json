@@ -34,10 +34,7 @@
     ],
     "linux": {
       "appimage": {
-        "useNewFormat": true,
-        "files": {
-          "/usr/lib/x86_64-linux-gnu/libsteam_api.so": "../lib/libsteam_api.so"
-        }
+        "useNewFormat": true
       }
     }
   }
