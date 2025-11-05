@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/f0511be705661dba2e505d7a86f513f5b4dbe240/crates/tauri-cli/config.schema.json",
   "productName": "convex",
   "version": "0.1.0",
   "identifier": "dev.cozygalvinism.convex",
