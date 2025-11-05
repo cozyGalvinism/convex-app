@@ -12,5 +12,5 @@ export async function showDeckKeyboardFor(el: HTMLElement) {
     const w = Math.round(r.width * dpr);
     const h = Math.round(r.height * dpr);
 
-    await invoke("show_steam_deck_keyboard", { x, y, w, h });
+    await invoke("show_steam_deck_keyboard", { x, y, width: w, height: h });
 }
