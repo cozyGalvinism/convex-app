@@ -5321,3 +5321,8 @@ dependencies = [
  "syn 2.0.108",
  "winnow 0.7.13",
 ]
+
+[[patch.unused]]
+name = "tauri"
+version = "2.8.5"
+source = "git+https://github.com/tauri-apps/tauri?branch=feat%2Ftruly-portable-appimage#f0511be705661dba2e505d7a86f513f5b4dbe240"
