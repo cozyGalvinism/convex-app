@@ -144,6 +144,9 @@ fn scan(root_override: Option<String>) -> anyhow::Result<ScanResult> {
         if ent.file_type().map(|t| t.is_dir()).unwrap_or(false) {
             let id = ent.file_name().to_string_lossy().to_string();
             let cfg = ent.path().join("instance.cfg");
+            if !cfg.exists() {
+                continue;
+            }
             let (name, icon_key, last, total) = parse_general(&cfg)?;
             let icon_b64 = resolve_icon_base64(&root, &ent.path(), icon_key.as_deref());
             instances.push(Instance {
