@@ -491,7 +491,7 @@ dependencies = [
  "serde_json",
  "steamworks",
  "tauri",
- "tauri-build 2.5.1",
+ "tauri-build",
  "tauri-plugin-opener",
  "tauri-plugin-shell",
 ]
@@ -3665,7 +3665,7 @@ dependencies = [
  "serde_repr",
  "serialize-to-javascript",
  "swift-rs",
- "tauri-build 2.4.1",
+ "tauri-build",
  "tauri-macros",
  "tauri-runtime",
  "tauri-runtime-wry",
@@ -3697,28 +3697,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tauri-utils 2.7.0",
- "tauri-winres",
- "toml 0.9.8",
- "walkdir",
-]
-
-[[package]]
-name = "tauri-build"
-version = "2.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a924b6c50fe83193f0f8b14072afa7c25b7a72752a2a73d9549b463f5fe91a38"
-dependencies = [
- "anyhow",
- "cargo_toml",
- "dirs",
- "glob",
- "heck 0.5.0",
- "json-patch",
- "schemars 0.8.22",
- "semver",
- "serde",
- "serde_json",
- "tauri-utils 2.8.0",
  "tauri-winres",
  "toml 0.9.8",
  "walkdir",
@@ -3944,7 +3922,6 @@ dependencies = [
  "url",
  "urlpattern",
  "uuid",
- "walkdir",
 ]
 
 [[package]]
