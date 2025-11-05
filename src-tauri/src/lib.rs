@@ -5,11 +5,34 @@ use std::{
 
 use base64::Engine;
 use serde::Serialize;
+use tauri::State;
 use tauri_plugin_shell::ShellExt;
 
 use crate::instance_cfg::parse_general;
 
 pub mod instance_cfg;
+
+struct SteamClient(Option<steamworks::Client>);
+
+impl SteamClient {
+    pub fn init() -> Self {
+        Self(steamworks::Client::init().ok())
+    }
+
+    pub fn show_osk(&self, x: i32, y: i32, width: i32, height: i32) {
+        if let Some(client) = &self.0 {
+            let utils = client.utils();
+            utils.show_floating_gamepad_text_input(
+                steamworks::FloatingGamepadTextInputMode::SingleLine,
+                x,
+                y,
+                width,
+                height,
+                || {},
+            );
+        }
+    }
+}
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -53,6 +76,18 @@ fn show_instance(
     root_override: Option<String>,
 ) -> Result<(), String> {
     show_in_prism(&app_handle, &instance_id, root_override.as_deref()).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn show_steam_deck_keyboard(
+    steam: State<'_, SteamClient>,
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+) -> Result<(), String> {
+    steam.show_osk(x, y, width, height);
+    Ok(())
 }
 
 fn default_root() -> PathBuf {
@@ -100,16 +135,6 @@ fn scan(root_override: Option<String>) -> anyhow::Result<ScanResult> {
     let mut groups: HashMap<String, Vec<String>> = HashMap::new();
     let groups_path = inst_dir.join("instgroups.json");
     if let Ok(bytes) = std::fs::read(&groups_path) {
-        #[derive(serde::Deserialize)]
-        struct GroupsFile {
-            #[serde(rename = "groups")]
-            groups: HashMap<String, Group>,
-        }
-        #[derive(serde::Deserialize)]
-        struct Group {
-            instances: Vec<String>,
-            hidden: Option<bool>,
-        }
         if let Ok(parsed) = serde_json::from_slice::<serde_json::Value>(&bytes) {
             if let Some(obj) = parsed.get("groups").and_then(|g| g.as_object()) {
                 for (name, val) in obj.iter() {
@@ -206,11 +231,13 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
+        .manage(SteamClient::init())
         .invoke_handler(tauri::generate_handler![
             greet,
             scan_prism,
             launch_instance,
-            show_instance
+            show_instance,
+            show_steam_deck_keyboard
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

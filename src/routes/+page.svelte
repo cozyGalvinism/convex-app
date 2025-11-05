@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { launchInstance, scan, showInstance } from "../lib/api";
   import type { Instance, ScanResult } from "../lib/api";
   import { watchGamepad } from "$lib/gamepad";
+  import GroupStrip from "$lib/GroupStrip.svelte";
+  import { showDeckKeyboardFor } from "$lib/osk";
 
   let data = $state({ instances: [], groups: {} } as ScanResult);
+  let searchEl: HTMLInputElement;
   let filtered: Instance[] = $state([]);
   let group: string | "All" = $state("All");
   let search = $state("");
@@ -78,6 +81,11 @@
     scrollIntoView();
   };
 
+  const focusSearchBar = () => {
+    const el = document.getElementById("search");
+    el?.focus();
+  };
+
   onMount(() => {
     updateBars();
     const ro = new ResizeObserver(() => updateBars());
@@ -102,6 +110,7 @@
       if (e === "down") move(0, 1);
       if (e === "a") actLaunch();
       if (e === "x") openInPrism();
+      if (e === "y") focusSearchBar();
       if (e === "lb") bumpGroup(-1);
       if (e === "rb") bumpGroup(1);
     });
@@ -120,37 +129,43 @@
     document.documentElement.style.setProperty("--header-h", `${hh}px`);
     document.documentElement.style.setProperty("--footer-h", `${fh}px`);
   }
+
+  $effect(() => {
+    if (group !== undefined) {
+      untrack(() => {
+        recompute();
+        focus = 0;
+      });
+    }
+  });
 </script>
 
 <div
   class="sticky top-0 z-10 backdrop-blur bg-neutral-900/80 border-b border-neutral-800"
   id="topbar"
 >
-  <div class="max-w-7xl mx-auto px-4 py-3 flex gap-3 items-center">
-    <div class="font-semibold text-lg">Convex</div>
+  <div
+    class="max-w-7xl mx-auto px-4 py-3 flex gap-3 justify-between items-center"
+  >
+    <div class="font-semibold text-lg whitespace-nowrap">Convex</div>
 
-    <div class="hidden md:flex items-center gap-2">
-      <span class="text-neutral-400">Group</span>
-      <select
-        class="bg-neutral-800 rounded px-2 py-1"
-        bind:value={group}
-        onchange={recompute}
-      >
-        <option>All</option>
-        {#each Object.keys(data.groups).sort() as g}
-          <option value={g}>{g}</option>
-        {/each}
-      </select>
+    <div class="flex-1 flex justify-center">
+      <GroupStrip bind:active={group} groups={data.groups} />
     </div>
 
-    <div class="ml-auto flex items-center gap-2">
+    <div class="flex items-center gap-2">
       <input
+        id="search"
+        bind:this={searchEl}
         class="bg-neutral-800 rounded px-3 py-1 w-64"
         bind:value={search}
         placeholder="Search…"
         oninput={() => {
           recompute();
           focus = 0;
+        }}
+        onfocus={() => {
+          showDeckKeyboardFor(searchEl);
         }}
       />
       <button
@@ -211,9 +226,11 @@
   >
     {#if lastMethod === "controller"}
       <div class="flex items-center gap-2">
-        <span class="btn a">A</span><span class="muted">Launch</span>
+        <span class="btn">A</span><span class="muted">Launch</span>
         <span class="sep">|</span>
-        <span class="btn x">X</span><span class="muted">Open in Prism</span>
+        <span class="btn">X</span><span class="muted">Open in Prism</span>
+        <span class="sep">|</span>
+        <span class="btn">Y</span><span class="muted">Focus Search</span>
         <span class="sep">|</span>
         <span class="kbd">LB</span>/<span class="kbd">RB</span><span
           class="muted">Switch Group</span
@@ -264,16 +281,7 @@
     @apply inline-flex items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 px-4 py-0.5 text-neutral-100;
   }
   .btn {
-    @apply inline-flex items-center justify-center rounded px-2 py-0.5 font-semibold;
-  }
-  .btn.a {
-    @apply border border-neutral-700 bg-neutral-800 rounded-full;
-  }
-  .btn.x {
-    @apply border border-neutral-700 bg-neutral-800 rounded-full;
-  }
-  .btn.y {
-    @apply border border-neutral-700 bg-neutral-800 rounded-full;
+    @apply inline-flex items-center justify-center px-2 py-0.5 font-semibold border border-neutral-700 bg-neutral-800 rounded-full;
   }
   .muted {
     @apply text-neutral-400;

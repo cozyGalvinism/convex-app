@@ -89,8 +89,8 @@ export function watchGamepad(
             const edge = (i: number) => curButtons[i] && !prevButtons[i];
 
             if (edge(0)) on("a");   // South
-            if (edge(2)) on("x");   // West
-            if (edge(3)) on("y");   // North
+            if (edge(2)) on("y");   // West
+            if (edge(3)) on("x");   // North
             if (edge(4)) on("lb");  // LB
             if (edge(5)) on("rb");  // RB
         }

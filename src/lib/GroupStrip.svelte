@@ -1,11 +1,16 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
 
-    export let groups: Record<string, string[]> = {};
-    export let active: string | "All" = "All";
+    let {
+        groups,
+        active = $bindable("All"),
+    }: {
+        groups: Record<string, string[]>;
+        active: string | "All";
+    } = $props();
 
     let scroller: HTMLDivElement;
-    let pills: HTMLDivElement[] = [];
+    let pills: HTMLButtonElement[] = [];
 
     const names = () => ["All", ...Object.keys(groups).sort()];
 
@@ -29,37 +34,38 @@
             Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
     };
 
+    function passive(fn: (e: WheelEvent) => void) {
+        // mirror the passive option of addEventListener
+        return fn.bind({ passive: true });
+    }
+
     onMount(centerActive);
-    $: active, centerActive(); // re-center when active changes
+    $effect(() => {
+        centerActive();
+    });
 </script>
 
 <div class="flex items-center gap-2 px-2 py-2">
-    <!-- LB hint -->
-    <span class="hidden md:inline kbd">LB</span>
-
     <div
         bind:this={scroller}
         class="relative flex overflow-x-auto no-scrollbar gap-2 px-1"
-        on:wheel|passive={wheelHoriz}
+        onwheel={passive(wheelHoriz)}
         aria-label="Groups position"
     >
         {#each names() as g, i}
-            <div
+            <button
                 bind:this={pills[i]}
                 class="px-3 py-1.5 rounded-full text-sm whitespace-nowrap select-none
                transition-colors
                {active === g
                     ? 'bg-neutral-200 text-neutral-900 font-semibold'
                     : 'bg-neutral-800/70 text-neutral-300'}"
-                style="pointer-events:none"
+                onclick={() => (active = g)}
             >
                 {g}
-            </div>
+            </button>
         {/each}
     </div>
-
-    <!-- RB hint -->
-    <span class="hidden md:inline kbd">RB</span>
 </div>
 
 <style>
