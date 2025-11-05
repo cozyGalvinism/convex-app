@@ -86,7 +86,7 @@ fn show_steam_deck_keyboard(
     width: f32,
     height: f32,
 ) -> Result<(), String> {
-    println!("trying to show osk at ({}, {})", x, y);
+    eprintln!("trying to show osk at ({}, {})", x, y);
     steam.show_osk(x as i32, y as i32, width as i32, height as i32);
     Ok(())
 }
